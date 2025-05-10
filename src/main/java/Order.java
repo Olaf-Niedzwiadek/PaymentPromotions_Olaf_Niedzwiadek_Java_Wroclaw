@@ -7,11 +7,8 @@ public class Order {
     private List<String> promotions;
 
     public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
 
     public BigDecimal getValue() { return value; }
-    public void setValue(BigDecimal value) { this.value = value; }
 
     public List<String> getPromotions() { return promotions; }
-    public void setPromotions(List<String> promotions) { this.promotions = promotions; }
 }
