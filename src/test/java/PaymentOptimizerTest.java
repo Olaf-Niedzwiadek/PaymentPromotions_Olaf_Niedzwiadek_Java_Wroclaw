@@ -29,8 +29,8 @@ public class PaymentOptimizerTest {
 
     @Test
     void testFallbackToMethodWhenPartialPointsNotAvailable() {
-        Order order = new Order("ORDER2", BigDecimal.valueOf(50), List.of("BosBankrut"));
-        Map<String, BigDecimal> reductions = Map.of("BosBankrut", BigDecimal.valueOf(5));
+        Order order = new Order("ORDER2", BigDecimal.valueOf(100), List.of("BosBankrut"));
+        Map<String, BigDecimal> reductions = Map.of("BosBankrut", BigDecimal.valueOf(5), "PartialPoints", BigDecimal.valueOf(10));
 
         Map<String, BigDecimal> methodBalances = new HashMap<>();
         methodBalances.put("PUNKTY", BigDecimal.valueOf(4));
@@ -43,8 +43,8 @@ public class PaymentOptimizerTest {
         PaymentOptimizer.processSingleOrderPayment(order, reductions, methodBalances, fundsUsed);
 
         assertEquals(BigDecimal.ZERO, fundsUsed.get("PUNKTY"));
-        assertEquals(BigDecimal.valueOf(45), fundsUsed.get("BosBankrut"));
-        assertEquals(BigDecimal.valueOf(55), methodBalances.get("BosBankrut"));
+        assertEquals(BigDecimal.valueOf(95), fundsUsed.get("BosBankrut"));
+        assertEquals(BigDecimal.valueOf(5), methodBalances.get("BosBankrut"));
     }
 
     @Test
@@ -68,14 +68,14 @@ public class PaymentOptimizerTest {
 
     @Test
     void testPartialPointsThenFallback() {
-        Order order = new Order("ORDER5", BigDecimal.valueOf(50), List.of());
+        Order order = new Order("ORDER5", BigDecimal.valueOf(100), List.of());
 
-        Map<String, BigDecimal> reductions = Map.of("PartialPoints", BigDecimal.valueOf(10));
+        Map<String, BigDecimal> reductions = Map.of("PartialPoints", BigDecimal.valueOf(10), "BosBankrut", BigDecimal.valueOf(5));
 
         Map<String, BigDecimal> methodBalances = new HashMap<>();
         methodBalances.put("PUNKTY", BigDecimal.valueOf(10));
         methodBalances.put("mZysk", BigDecimal.valueOf(30));
-        methodBalances.put("BosBankrut", BigDecimal.valueOf(10));
+        methodBalances.put("BosBankrut", BigDecimal.valueOf(50));
 
         Map<String, BigDecimal> fundsUsed = new HashMap<>();
         methodBalances.keySet().forEach(k -> fundsUsed.put(k, BigDecimal.ZERO));
@@ -83,8 +83,21 @@ public class PaymentOptimizerTest {
         PaymentOptimizer.processSingleOrderPayment(order, reductions, methodBalances, fundsUsed);
         assertEquals(BigDecimal.valueOf(10), fundsUsed.get("PUNKTY"));
         assertEquals(BigDecimal.valueOf(30), fundsUsed.get("mZysk"));
+        assertEquals(BigDecimal.valueOf(50), fundsUsed.get("BosBankrut"));
     }
 
+    @Test
+    void testSortReductionsByValueAndPreference() {
+        Map<String, BigDecimal> input = new HashMap<>();
+        input.put("mZysk", BigDecimal.valueOf(10));
+        input.put("BosBankrut", BigDecimal.valueOf(10));
+        input.put("PartialPoints", BigDecimal.valueOf(10));
+        input.put("PUNKTY", BigDecimal.valueOf(15));
+
+        Map<String, BigDecimal> sorted = PaymentOptimizer.sortReductions(input);
+        List<String> keys = new ArrayList<>(sorted.keySet());
+        assertEquals(List.of("PUNKTY", "PartialPoints", "BosBankrut", "mZysk"), keys);
+    }
 
 }
 
