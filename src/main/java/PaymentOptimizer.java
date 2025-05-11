@@ -33,7 +33,7 @@ public class PaymentOptimizer {
         return methods.stream().collect(Collectors.toMap(PaymentMethod::getId, PaymentMethod::getLimit));
     }
 
-    private static Map<String, Map<String, BigDecimal>> calculateOrderReductions(List<Order> orders, Map<String, PaymentMethod> methodMap) {
+    static Map<String, Map<String, BigDecimal>> calculateOrderReductions(List<Order> orders, Map<String, PaymentMethod> methodMap) {
         Map<String, Map<String, BigDecimal>> allOrderCalculations = new LinkedHashMap<>();
 
         for (Order order : orders) {
@@ -61,7 +61,7 @@ public class PaymentOptimizer {
         return allOrderCalculations;
     }
 
-    private static Map<String, BigDecimal> sortReductions(Map<String, BigDecimal> reductions) {
+    static Map<String, BigDecimal> sortReductions(Map<String, BigDecimal> reductions) {
         return reductions.entrySet().stream()
                 .sorted((e1, e2) -> {
                     int cmp = e2.getValue().compareTo(e1.getValue());
@@ -78,7 +78,7 @@ public class PaymentOptimizer {
                         (a, b) -> a, LinkedHashMap::new));
     }
 
-    private static void processPaymentsForOrders(List<Order> orders,
+    static void processPaymentsForOrders(List<Order> orders,
                                                  Map<String, Map<String, BigDecimal>> allOrderCalculations,
                                                  Map<String, BigDecimal> methodBalances,
                                                  Map<String, BigDecimal> fundsUsed) {
@@ -88,7 +88,7 @@ public class PaymentOptimizer {
         }
     }
 
-    private static void processSingleOrderPayment(Order order,
+     static void processSingleOrderPayment(Order order,
                                                   Map<String, BigDecimal> reductions,
                                                   Map<String, BigDecimal> methodBalances,
                                                   Map<String, BigDecimal> fundsUsed) {
@@ -127,7 +127,7 @@ public class PaymentOptimizer {
         }
     }
 
-    private static void payWithHighestBalanceMethod(BigDecimal amount,
+     static void payWithHighestBalanceMethod(BigDecimal amount,
                                                     Map<String, BigDecimal> balances,
                                                     Map<String, BigDecimal> fundsUsed,
                                                     String excludeMethod) {
@@ -135,8 +135,7 @@ public class PaymentOptimizer {
         List<Map.Entry<String, BigDecimal>> available = balances.entrySet().stream()
                 .filter(e -> !e.getKey().equals(excludeMethod))
                 .filter(e -> e.getValue().compareTo(BigDecimal.ZERO) > 0)
-                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
-                .collect(Collectors.toList());
+                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder())).toList();
 
         for (Map.Entry<String, BigDecimal> method : available) {
             BigDecimal payment = amount.min(method.getValue());
