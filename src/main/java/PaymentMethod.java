@@ -10,5 +10,4 @@ public class PaymentMethod {
     public BigDecimal getDiscount() { return discount; }
 
     public BigDecimal getLimit() { return limit; }
-    public void setLimit(BigDecimal limit) { this.limit = limit; }
 }

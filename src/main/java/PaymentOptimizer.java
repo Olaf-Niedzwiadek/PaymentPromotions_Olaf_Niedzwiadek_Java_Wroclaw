@@ -5,11 +5,11 @@ import java.util.stream.Collectors;
 
 public class PaymentOptimizer {
 
-    public static Map<String, Object> optimizePayments(List<Order> orders, List<PaymentMethod> methods) {
+    public static Map<String, BigDecimal> optimizePayments(List<Order> orders, List<PaymentMethod> methods) {
         Map<String, PaymentMethod> methodMap = buildMethodMap(methods);
         orders.sort((o1, o2) -> o2.getValue().compareTo(o1.getValue()));
-
         Map<String, Map<String, BigDecimal>> allOrderCalculations = calculateOrderReductions(orders, methodMap);
+
         Map<String, BigDecimal> initialBalances = initializeBalances(methods);
         Map<String, BigDecimal> methodBalances = new HashMap<>(initialBalances);
         Map<String, BigDecimal> fundsUsed = initialBalances.keySet().stream()
@@ -17,13 +17,13 @@ public class PaymentOptimizer {
 
         processPaymentsForOrders(orders, allOrderCalculations, methodBalances, fundsUsed);
 
-        Map<String, Object> results = new LinkedHashMap<>();
-        results.put("calculations", allOrderCalculations);
-        results.put("funds_used", fundsUsed);
-        results.put("remaining_balances", methodBalances);
-
-        return results;
+        return fundsUsed;
     }
+    public static void printFundsUsed(Map<String, BigDecimal> fundsUsed) {
+        fundsUsed.forEach((method, amount) ->
+                System.out.printf("%s: %.2f%n", method, amount));
+    }
+
 
     private static Map<String, PaymentMethod> buildMethodMap(List<PaymentMethod> methods) {
         return methods.stream().collect(Collectors.toMap(PaymentMethod::getId, Function.identity()));
@@ -105,35 +105,32 @@ public class PaymentOptimizer {
 
                     methodBalances.put("PUNKTY", methodBalances.get("PUNKTY").subtract(reduction));
                     fundsUsed.put("PUNKTY", fundsUsed.get("PUNKTY").add(reduction));
-
                     BigDecimal toPay = remaining.subtract(reduction.multiply(BigDecimal.valueOf(2)));
+
                     if (toPay.compareTo(BigDecimal.ZERO) > 0) {
                         payWithHighestBalanceMethod(toPay, methodBalances, fundsUsed, "PUNKTY");
                     }
-
                     return;
                 }
             } else if (methodBalances.containsKey(methodId)) {
                 BigDecimal toPay = remaining.subtract(reduction);
                 if (toPay.compareTo(BigDecimal.ZERO) >= 0 &&
                         methodBalances.get(methodId).compareTo(toPay) >= 0) {
-
                     methodBalances.put(methodId, methodBalances.get(methodId).subtract(toPay));
                     fundsUsed.put(methodId, fundsUsed.get(methodId).add(toPay));
                     return;
                 }
             }
         }
-
         if (remaining.compareTo(BigDecimal.ZERO) > 0) {
             payWithHighestBalanceMethod(remaining, methodBalances, fundsUsed, null);
         }
     }
 
-    private static boolean payWithHighestBalanceMethod(BigDecimal amount,
-                                                       Map<String, BigDecimal> balances,
-                                                       Map<String, BigDecimal> fundsUsed,
-                                                       String excludeMethod) {
+    private static void payWithHighestBalanceMethod(BigDecimal amount,
+                                                    Map<String, BigDecimal> balances,
+                                                    Map<String, BigDecimal> fundsUsed,
+                                                    String excludeMethod) {
 
         List<Map.Entry<String, BigDecimal>> available = balances.entrySet().stream()
                 .filter(e -> !e.getKey().equals(excludeMethod))
@@ -146,11 +143,10 @@ public class PaymentOptimizer {
             balances.put(method.getKey(), method.getValue().subtract(payment));
             fundsUsed.merge(method.getKey(), payment, BigDecimal::add);
             amount = amount.subtract(payment);
-            if (amount.compareTo(BigDecimal.ZERO) <= 0) return true;
+            if (amount.compareTo(BigDecimal.ZERO) <= 0) return;
         }
-
-        return amount.compareTo(BigDecimal.ZERO) <= 0;
     }
 }
+
 
 

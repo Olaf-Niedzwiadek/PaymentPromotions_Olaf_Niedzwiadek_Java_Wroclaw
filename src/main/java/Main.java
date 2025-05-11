@@ -1,7 +1,7 @@
-import com.fasterxml.jackson.core.type.TypeReference; //for json java conversion
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.File;  //for file readup list of desired objects creation
+import java.io.File;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
@@ -23,37 +23,10 @@ public class Main {
                 new TypeReference<List<PaymentMethod>>() {}
         );
 
-        // Get all results from the optimizer
-        Map<String, Object> optimizationResults = PaymentOptimizer.optimizePayments(orders, methods);
+        Map<String, BigDecimal> optimizationResults = PaymentOptimizer.optimizePayments(orders, methods);
+        PaymentOptimizer.printFundsUsed(optimizationResults);
 
-        // Extract just the calculations if that's what you want to display
-        @SuppressWarnings("unchecked")
-        Map<String, Map<String, BigDecimal>> calculations =
-                (Map<String, Map<String, BigDecimal>>) optimizationResults.get("calculations");
-
-        // Display the calculations (original code)
-        for (String orderId : calculations.keySet()) {
-            System.out.println("\nOrder: " + orderId);
-            Map<String, BigDecimal> reductions = calculations.get(orderId);
-            reductions.forEach((method, reduction) ->
-                    System.out.printf("- %s: %.2f%n", method, reduction));
-        }
-
-        // You can also access the other results if needed:
-        @SuppressWarnings("unchecked")
-        Map<String, BigDecimal> fundsUsed =
-                (Map<String, BigDecimal>) optimizationResults.get("funds_used");
-
-        @SuppressWarnings("unchecked")
-        Map<String, BigDecimal> remainingBalances =
-                (Map<String, BigDecimal>) optimizationResults.get("remaining_balances");
-
-        System.out.println("\nFunds Used:");
-        fundsUsed.forEach((method, amount) ->
-                System.out.printf("- %s: %.2f%n", method, amount));
-
-        System.out.println("\nRemaining Balances:");
-        remainingBalances.forEach((method, balance) ->
-                System.out.printf("- %s: %.2f%n", method, balance));
     }
 }
+
+
