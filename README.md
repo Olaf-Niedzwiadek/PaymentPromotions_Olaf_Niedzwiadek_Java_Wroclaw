@@ -15,4 +15,4 @@ PaymentOptimiser.java - Core logic that calculates the optimal way to pay for or
 PaymentOptimizerTest.java - Contains JUnit tests that validate the behavior of payment allocation and discount logic in PaymentOptimizer
 
 ## PDF file with task description in polish 
-📄 [View Project Presentation (PDF)](./docs/Task%20description.pdf)
+📄 [View Project Presentation (PDF)](./Task%20description.pdf)
